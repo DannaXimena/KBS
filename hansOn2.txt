@@ -1,0 +1,64 @@
+CLIPS> (deftemplate disease
+(slot name)
+(multislot signs)
+(multislot symtoms)
+)
+CLIPS>  (assert(disease(name "influenza")
+(signs "temperatura" "tos")
+(symtoms "debilidad" "secrecion_nasal")))
+<Fact-1>
+CLIPS>  (assert(disease(name "COVID-19")
+(signs "temperatura" "dificultad_respiratoria")
+(symtoms "tos" "dolor_cabeza")))
+<Fact-2>
+CLIPS>  (assert(disease(name "cancer")
+(signs "dolor_general" "globulos_abajo")
+(symtoms "debilidad" "moretones")))
+<Fact-3>
+CLIPS>  (assert(disease(name "hipertension")
+(signs "presion_alta" "derrames")
+(symtoms "mareos" "frecuenciaC_alta")))
+<Fact-4>
+CLIPS> (assert(disease(name "Diabetes")
+(signs "glucosa_alta" "vision_borrosa")
+(symtoms "mareos" "gangrena")))
+<Fact-5>
+CLIPS> (assert(disease(name "infarto")
+(signs "vision_borrosa" "cansancio")
+(symtoms "dolor_pecho" "oxigenacion_baja")))
+<Fact-6>
+CLIPS> (defrule search-disease "search"
+(disease(name ?i) (signs $?j) (symtoms $?k))
+=>
+(printout t "*******" crlf "[-]disease" ?i crlf "-signs:" ?j crlf "- symptoms:" ?k crlf)
+)
+CLIPS> (agenda)
+0      search-disease: f-6
+0      search-disease: f-5
+0      search-disease: f-4
+0      search-disease: f-3
+0      search-disease: f-2
+0      search-disease: f-1
+For a total of 6 activations.
+CLIPS> (facts)
+f-1     (disease (name "influenza") (signs "temperatura" "tos") (symtoms "debilidad" "secrecion_nasal"))
+f-2     (disease (name "COVID-19") (signs "temperatura" "dificultad_respiratoria") (symtoms "tos" "dolor_cabeza"))
+f-3     (disease (name "cancer") (signs "dolor_general" "globulos_abajo") (symtoms "debilidad" "moretones"))
+f-4     (disease (name "hipertension") (signs "presion_alta" "derrames") (symtoms "mareos" "frecuenciaC_alta"))
+f-5     (disease (name "Diabetes") (signs "glucosa_alta" "vision_borrosa") (symtoms "mareos" "gangrena"))
+f-6     (disease (name "infarto") (signs "vision_borrosa" "cansancio") (symtoms "dolor_pecho" "oxigenacion_baja"))
+For a total of 6 facts.
+CLIPS> (defrule delete-disease "Borrar enfermedad"
+	=>
+	(printout t crlf "[*] Ingrese ID de enfermedad a borrar: ")
+	(bind ?d (read))
+	(retract ?d)
+	(println t crlf "[+] Enfermedad con fact (" ?d ") eliminada con éxito")
+)
+(defrule show-disease "Mostrar enfermedades"
+   ?dis <- (disease (name ?n))
+   =>
+   (bind ?in (fact-index ?dis))
+   (printout t "[" ?in "] " ?n crlf)
+)
+CLIPS> (run)
