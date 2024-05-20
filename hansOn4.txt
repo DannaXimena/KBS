@@ -1,0 +1,192 @@
+;; Danna Ximena G Escalante Figueroa
+;; Declaración de templates
+(deftemplate Smartphone
+    (slot marca)
+    (slot modelo)
+    (slot precio))
+
+(deftemplate Computadora
+    (slot marca)
+    (slot modelo)
+    (slot precio))
+
+(deftemplate Accesorio
+    (slot tipo)
+    (slot marca)
+    (slot modelo)
+    (slot precio))
+
+(deftemplate Cliente
+    (slot nombre)
+    (slot direccion)
+    (slot telefono))
+
+(deftemplate OrdenDeCompra
+    (slot cliente)
+    (multislot productos)
+    (slot total))
+
+(deftemplate TarjetaDeCredito
+    (slot cliente)
+    (slot numero)
+    (slot fecha-expiracion)
+    (slot cvv))
+
+(deftemplate Vale
+    (slot cliente)
+    (slot codigo)
+    (slot descuento))
+
+;; Reglas de condición-acción
+(defrule descuento-smartphones-apple
+    ?s <- (Smartphone (marca "Apple") (precio ?p))
+    =>
+    (bind ?nuevo-precio (* ?p 0.9))
+    (modify ?s (precio ?nuevo-precio))
+    (printout t "Descuento aplicado a smartphone Apple. Nuevo precio: " ?nuevo-precio crlf))
+
+(defrule descuento-computadoras-dell
+    ?c <- (Computadora (marca "Dell") (precio ?p))
+    =>
+    (bind ?nuevo-precio (* ?p 0.85))
+    (modify ?c (precio ?nuevo-precio))
+    (printout t "Descuento aplicado a computadora Dell. Nuevo precio: " ?nuevo-precio crlf))
+
+(defrule descuento-accesorios-samsung
+    ?a <- (Accesorio (marca "Samsung") (precio ?p))
+    =>
+    (bind ?nuevo-precio (* ?p 0.95))
+    (modify ?a (precio ?nuevo-precio))
+    (printout t "Descuento aplicado a accesorio Samsung. Nuevo precio: " ?nuevo-precio crlf))
+
+(defrule crear-orden-de-compra
+    (declare (salience 10))
+    ?cliente <- (Cliente (nombre ?nombre))
+    (accumulate (bind ?productos) 
+                (product (precio ?precio)) 
+                (sum ?precio) 
+                (initial-value 0) 
+                (Accesorio (precio ?precio)))
+    =>
+    (assert (OrdenDeCompra (cliente ?nombre) (productos ?productos) (total ?total)))
+    (printout t "Orden de compra creada para el cliente: " ?nombre crlf))
+
+(defrule aplicar-vale
+    ?orden <- (OrdenDeCompra (cliente ?nombre) (total ?total))
+    ?vale <- (Vale (cliente ?nombre) (descuento ?descuento))
+    =>
+    (bind ?nuevo-total (* ?total (- 1 (/ ?descuento 100.0))))
+    (modify ?orden (total ?nuevo-total))
+    (printout t "Vale aplicado. Nuevo total de la orden de compra: " ?nuevo-total crlf))
+
+(defrule validar-tarjeta
+    ?tc <- (TarjetaDeCredito (cliente ?nombre) (fecha-expiracion ?fecha))
+    (test (<= (length ?fecha) 7))
+    =>
+    (printout t "Tarjeta de crédito válida para el cliente: " ?nombre crlf))
+
+(defrule cliente-nuevo
+    ?cliente <- (Cliente (nombre ?nombre) (direccion ?direccion) (telefono ?telefono))
+    =>
+    (printout t "Nuevo cliente registrado: " ?nombre ", Dirección: " ?direccion ", Teléfono: " ?telefono crlf))
+
+(defrule cliente-existente
+    ?cliente <- (Cliente (nombre ?nombre))
+    =>
+    (printout t "Cliente existente: " ?nombre crlf))
+
+(defrule agregar-smartphone
+    (declare (salience 5))
+    (Smartphone (marca ?marca) (modelo ?modelo) (precio ?precio))
+    =>
+    (printout t "Smartphone agregado: Marca: " ?marca ", Modelo: " ?modelo ", Precio: " ?precio crlf))
+
+(defrule agregar-computadora
+    (declare (salience 5))
+    (Computadora (marca ?marca) (modelo ?modelo) (precio ?precio))
+    =>
+    (printout t "Computadora agregada: Marca: " ?marca ", Modelo: " ?modelo ", Precio: " ?precio crlf))
+
+(defrule agregar-accesorio
+    (declare (salience 5))
+    (Accesorio (tipo ?tipo) (marca ?marca) (modelo ?modelo) (precio ?precio))
+    =>
+    (printout t "Accesorio agregado: Tipo: " ?tipo ", Marca: " ?marca ", Modelo: " ?modelo ", Precio: " ?precio crlf))
+
+(defrule eliminar-smartphone
+    (declare (salience 10))
+    ?s <- (Smartphone (marca ?marca) (modelo ?modelo))
+    =>
+    (retract ?s)
+    (printout t "Smartphone eliminado: Marca: " ?marca ", Modelo: " ?modelo crlf))
+
+(defrule eliminar-computadora
+    (declare (salience 10))
+    ?c <- (Computadora (marca ?marca) (modelo ?modelo))
+    =>
+    (retract ?c)
+    (printout t "Computadora eliminada: Marca: " ?marca ", Modelo: " ?modelo crlf))
+
+(defrule eliminar-accesorio
+    (declare (salience 10))
+    ?a <- (Accesorio (marca ?marca) (modelo ?modelo))
+    =>
+    (retract ?a)
+    (printout t "Accesorio eliminado: Marca: " ?marca ", Modelo: " ?modelo crlf))
+
+(defrule aplicar-descuento-general
+    (Accesorio (precio ?precio))
+    =>
+    (bind ?nuevo-precio (* ?precio 0.95))
+    (modify ?a (precio ?nuevo-precio))
+    (printout t "Descuento general aplicado. Nuevo precio: " ?nuevo-precio crlf))
+
+(defrule total-orden-de-compra
+    ?orden <- (OrdenDeCompra (productos $?productos) (total ?total))
+    =>
+    (printout t "Total de la orden de compra: " ?total crlf))
+
+(defrule validar-direccion-cliente
+    ?cliente <- (Cliente (nombre ?nombre) (direccion ?direccion))
+    =>
+    (if (eq ?direccion "") then
+        (printout t "Dirección no válida para el cliente: " ?nombre crlf)
+    else
+        (printout t "Dirección válida para el cliente: " ?nombre crlf)))
+
+(defrule validar-telefono-cliente
+    ?cliente <- (Cliente (nombre ?nombre) (telefono ?telefono))
+    =>
+    (if (eq ?telefono "") then
+        (printout t "Teléfono no válido para el cliente: " ?nombre crlf)
+    else
+        (printout t "Teléfono válido para el cliente: " ?nombre crlf)))
+
+(defrule verificar-expiracion-tarjeta
+    ?tc <- (TarjetaDeCredito (cliente ?nombre) (fecha-expiracion ?fecha))
+    =>
+    (if (eq ?fecha "05/2024") then
+        (printout t "Tarjeta de crédito del cliente " ?nombre " está a punto de expirar." crlf)
+    else
+        (printout t "Tarjeta de crédito del cliente " ?nombre " es válida." crlf)))
+
+(defrule mostrar-detalle-productos
+    ?producto <- (or (Smartphone (marca ?marca) (modelo ?modelo) (precio ?precio))
+                     (Computadora (marca ?marca) (modelo ?modelo) (precio ?precio))
+                     (Accesorio (marca ?marca) (modelo ?modelo) (precio ?precio)))
+    =>
+    (printout t "Producto: Marca: " ?marca ", Modelo: " ?modelo ", Precio: " ?precio crlf))
+
+;; Inicialización de hechos
+(assert (Cliente (nombre "Juan Perez") (direccion "loma de cusco 123") (telefono "33132486")))
+(assert (Cliente (nombre "Ana Gomez") (direccion "lomas del sur 742") (telefono "331012878")))
+(assert (Smartphone (marca "Apple") (modelo "iPhone 13") (precio 1000)))
+(assert (Smartphone (marca "Samsung") (modelo "Galaxy S21") (precio 800)))
+(assert (Computadora (marca "Dell") (modelo "XPS 13") (precio 1200)))
+(assert (Computadora (marca "HP") (modelo "Pavilion 15") (precio 900)))
+(assert (Accesorio (tipo "Cargador") (marca "Samsung") (modelo "Fast Charge") (precio 50)))
+(assert (Accesorio (tipo "Funda") (marca "Apple") (modelo "iPhone 13 Case") (precio 40)))
+(assert (Vale (cliente "Juan Perez") (codigo "DESC10") (descuento 10)))
+(assert (TarjetaDeCredito (cliente "Ana Gomez") (numero "1234-5678-9012-3456") (fecha-expiracion "05/2024") (cvv 123)))
+
+(run)

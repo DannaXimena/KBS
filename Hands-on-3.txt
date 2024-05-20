@@ -1,0 +1,96 @@
+;; árbol de decisión Danna Escalante
+(deftemplate disease
+   (slot name)
+   (multislot signs)
+   (multislot symptoms))
+
+;; Hechos iniciales de enfermedades
+(assert (disease (name "influenza") 
+                 (signs "temperatura" "tos") 
+                 (symptoms "debilidad" "secrecion_nasal")))
+
+(assert (disease (name "COVID-19") 
+                 (signs "temperatura" "dificultad_respiratoria") 
+                 (symptoms "tos" "dolor_cabeza")))
+
+(assert (disease (name "cancer") 
+                 (signs "dolor_general" "globulos_abajo") 
+                 (symptoms "debilidad" "moretones")))
+
+(assert (disease (name "hipertension") 
+                 (signs "presion_alta" "derrames") 
+                 (symptoms "mareos" "frecuenciaC_alta")))
+
+(assert (disease (name "Diabetes") 
+                 (signs "glucosa_alta" "vision_borrosa") 
+                 (symptoms "mareos" "gangrena")))
+
+(assert (disease (name "infarto") 
+                 (signs "vision_borrosa" "cansancio") 
+                 (symptoms "dolor_pecho" "oxigenacion_baja")))
+
+;; Definición de reglas para búsqueda de enfermedades basadas en signos y síntomas
+(defrule search-disease
+   (declare (salience 100))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "temperatura" $?signs)
+              (member$ "tos" $?symptoms)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+(defrule search-disease-2
+   (declare (salience 90))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "temperatura" $?signs)
+              (member$ "dificultad_respiratoria" $?signs)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+(defrule search-disease-3
+   (declare (salience 80))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "dolor_general" $?signs)
+              (member$ "globulos_abajo" $?signs)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+(defrule search-disease-4
+   (declare (salience 70))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "presion_alta" $?signs)
+              (member$ "derrames" $?signs)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+(defrule search-disease-5
+   (declare (salience 60))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "glucosa_alta" $?signs)
+              (member$ "vision_borrosa" $?signs)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+(defrule search-disease-6
+   (declare (salience 50))
+   (disease (name ?name) (signs $?signs) (symptoms $?symptoms))
+   (test (and (member$ "vision_borrosa" $?signs)
+              (member$ "cansancio" $?signs)))
+   =>
+   (printout t "La enfermedad podría ser: " ?name crlf))
+
+;; Regla para mostrar todas las enfermedades almacenadas
+(defrule show-diseases
+   ?disease <- (disease (name ?name))
+   =>
+   (printout t "Enfermedad: " ?name crlf))
+
+;; Regla para eliminar una enfermedad basada en el índice del hecho
+(defrule delete-disease
+   =>
+   (printout t "Ingrese el ID de la enfermedad a borrar: " crlf)
+   (bind ?d (read))
+   (retract ?d)
+   (printout t "Enfermedad con ID " ?d " eliminada con éxito" crlf))
+
+;; Para ejecutar las reglas
+(run)
